@@ -94,19 +94,20 @@ export const createTemplate = mutation({
     description: v.optional(v.string()),
     bodyPart: v.string(),
     variation: v.optional(v.string()),
+    defaultUnit: v.optional(v.union(v.literal('kg'), v.literal('lbs'))),
     items: v.array(
       v.object({
         exerciseId: v.id('exercises'),
         order: v.number(),
         sets: v.array(
-          v.object({ reps: v.number(), weight: v.optional(v.number()), restSec: v.optional(v.number()) })
+          v.object({ reps: v.number(), weightPercentage: v.optional(v.number()), restSec: v.optional(v.number()) })
         ),
         groupId: v.optional(v.string()),
         groupOrder: v.optional(v.number()),
       })
     ),
   },
-  handler: async (ctx, { name, description, bodyPart, variation, items }) => {
+  handler: async (ctx, { name, description, bodyPart, variation, defaultUnit, items }) => {
     if (!name || !bodyPart) throw new Error('Missing required fields');
     if (!items || items.length === 0) throw new Error('Items required');
     const orderSet = new Set<number>();
@@ -137,6 +138,7 @@ export const createTemplate = mutation({
       description,
       bodyPart,
       variation,
+      defaultUnit,
       items,
       createdAt: now,
     });
@@ -151,13 +153,14 @@ export const updateTemplate = mutation({
     description: v.optional(v.string()),
     bodyPart: v.optional(v.string()),
     variation: v.optional(v.string()),
+    defaultUnit: v.optional(v.union(v.literal('kg'), v.literal('lbs'))),
     items: v.optional(
       v.array(
         v.object({
           exerciseId: v.id('exercises'),
           order: v.number(),
           sets: v.array(
-            v.object({ reps: v.number(), weight: v.optional(v.number()), restSec: v.optional(v.number()) })
+            v.object({ reps: v.number(), weightPercentage: v.optional(v.number()), restSec: v.optional(v.number()) })
           ),
           groupId: v.optional(v.string()),
           groupOrder: v.optional(v.number()),
@@ -173,12 +176,14 @@ export const updateTemplate = mutation({
       description?: string;
       bodyPart: string;
       variation?: string;
-      items: Array<{ exerciseId: Id<'exercises'>; order: number; sets: Array<{ reps: number; weight?: number; restSec?: number }>; groupId?: string; groupOrder?: number }>;
+      defaultUnit?: 'kg' | 'lbs';
+      items: Array<{ exerciseId: Id<'exercises'>; order: number; sets: Array<{ reps: number; weightPercentage?: number; restSec?: number }>; groupId?: string; groupOrder?: number }>;
     }> = {};
     if (args.name !== undefined) update.name = args.name;
     if (args.description !== undefined) update.description = args.description;
     if (args.bodyPart !== undefined) update.bodyPart = args.bodyPart;
     if (args.variation !== undefined) update.variation = args.variation;
+    if (args.defaultUnit !== undefined) update.defaultUnit = args.defaultUnit;
     if (args.items !== undefined) {
       if (!args.items.length) throw new Error('Items required');
       for (const item of args.items) {

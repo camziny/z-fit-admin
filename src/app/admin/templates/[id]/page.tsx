@@ -23,6 +23,8 @@ export default function TemplateDetail({ params }: { params: { id: string } }) {
   const data = useQuery(api.templates.getById, { templateId });
   const [name, setName] = useState("");
   const [bodyPart, setBodyPart] = useState("");
+  const [description, setDescription] = useState("");
+  const [variation, setVariation] = useState("");
   const [items, setItems] = useState<any[]>([]);
   const exercises = useQuery(api.exercises.getMultiple, data ? { exerciseIds: (data.items || []).map((i: any) => i.exerciseId as Id<'exercises'>) } : "skip") || [];
   const availableForPart = useQuery(api.exercises.byBodyPart, bodyPart ? { bodyPart } : "skip") || [];
@@ -38,6 +40,8 @@ export default function TemplateDetail({ params }: { params: { id: string } }) {
     if (data) {
       setName(data.name || "");
       setBodyPart(data.bodyPart || "");
+      setDescription(data.description || "");
+      setVariation(data.variation || "");
       setItems([...(data.items || [])].sort((a: any, b: any) => a.order - b.order));
     }
   }, [data]);
@@ -63,7 +67,7 @@ export default function TemplateDetail({ params }: { params: { id: string } }) {
   };
 
   const saveChanges = async () => {
-    const payload = { templateId, name: name.trim(), bodyPart, items } as any;
+    const payload = { templateId, name: name.trim(), bodyPart, description: description.trim(), variation: variation.trim(), items } as any;
     await convex.mutation(api.templates.updateTemplate, payload);
   };
 
@@ -129,6 +133,14 @@ export default function TemplateDetail({ params }: { params: { id: string } }) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium">Description</label>
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Workout description" disabled={!editMode} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Variation</label>
+              <Input value={variation} onChange={(e) => setVariation(e.target.value)} placeholder="e.g., push1" disabled={!editMode} />
             </div>
           </div>
 
@@ -242,6 +254,35 @@ export default function TemplateDetail({ params }: { params: { id: string } }) {
                             Remove
                           </Button>
                         </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {!editMode ? (
+                        <>
+                          {item.groupId && <div className="text-xs text-muted-foreground">Group: {item.groupId}</div>}
+                          {item.groupOrder != null && <div className="text-xs text-muted-foreground">Group Order: {item.groupOrder}</div>}
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-1">
+                            <label className="text-xs text-muted-foreground">Group ID</label>
+                            <Input value={item.groupId || ""} onChange={(e) => {
+                              const copy = [...items];
+                              copy[idx].groupId = e.target.value || undefined;
+                              setItems(copy);
+                            }} />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs text-muted-foreground">Group Order</label>
+                            <Input type="number" value={item.groupOrder ?? ""} onChange={(e) => {
+                              const val = e.target.value ? Number(e.target.value) : undefined;
+                              const copy = [...items];
+                              copy[idx].groupOrder = val as any;
+                              setItems(copy);
+                            }} />
+                          </div>
+                        </>
                       )}
                     </div>
 
