@@ -63,6 +63,29 @@ export const getById = query({
   },
 });
 
+export const createExercise = mutation({
+  args: {
+    name: v.string(),
+    bodyPart: v.string(),
+    isWeighted: v.boolean(),
+    gifUrl: v.optional(v.string()),
+    description: v.optional(v.string()),
+    equipment: v.optional(v.union(
+      v.literal('barbell'), v.literal('dumbbell'), v.literal('machine'), v.literal('kettlebell'), v.literal('cable'), v.literal('bodyweight')
+    )),
+    loadingMode: v.optional(v.union(
+      v.literal('bar'), v.literal('pair'), v.literal('single')
+    )),
+    roundingIncrementKg: v.optional(v.number()),
+    roundingIncrementLbs: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const id = await ctx.db.insert('exercises', { ...args, createdAt: now });
+    return id as Id<'exercises'>;
+  },
+});
+
 export const updateExercise = mutation({
   args: {
     exerciseId: v.id('exercises'),

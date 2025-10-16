@@ -39,12 +39,17 @@ export default defineSchema({
     description: v.optional(v.string()),
     bodyPart: v.string(),
     variation: v.optional(v.string()),
+    defaultUnit: v.optional(v.union(v.literal('kg'), v.literal('lbs'))),
     items: v.array(
       v.object({
         exerciseId: v.id('exercises'),
         order: v.number(),
         sets: v.array(
-          v.object({ reps: v.number(), weight: v.optional(v.number()), restSec: v.optional(v.number()) })
+          v.object({ 
+            reps: v.number(), 
+            weightPercentage: v.optional(v.number()),
+            restSec: v.optional(v.number()) 
+          })
         ),
         groupId: v.optional(v.string()),
         groupOrder: v.optional(v.number()),
